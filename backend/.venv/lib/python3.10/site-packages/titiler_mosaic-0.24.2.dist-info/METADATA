@@ -1,0 +1,85 @@
+Metadata-Version: 2.1
+Name: titiler-mosaic
+Version: 0.24.2
+Summary: cogeo-mosaic (MosaicJSON) plugin for TiTiler.
+Keywords: COG,STAC,MosaicJSON,Fastapi,Dynamic tile server,GDAL,Rasterio,OGC
+Author-Email: Vincent Sarago <vincent@developmentseed.com>
+License: MIT
+Classifier: Intended Audience :: Information Technology
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Scientific/Engineering :: GIS
+Project-URL: Homepage, https://developmentseed.org/titiler/
+Project-URL: Documentation, https://developmentseed.org/titiler/
+Project-URL: Issues, https://github.com/developmentseed/titiler/issues
+Project-URL: Source, https://github.com/developmentseed/titiler
+Project-URL: Changelog, https://developmentseed.org/titiler/release-notes/
+Requires-Python: >=3.10
+Requires-Dist: titiler.core==0.24.2
+Requires-Dist: cogeo-mosaic<9.0,>=8.0
+Provides-Extra: test
+Requires-Dist: pytest; extra == "test"
+Requires-Dist: pytest-cov; extra == "test"
+Requires-Dist: pytest-asyncio; extra == "test"
+Requires-Dist: httpx; extra == "test"
+Requires-Dist: cogeo-mosaic<9.0,>=8.2; extra == "test"
+Description-Content-Type: text/markdown
+
+## titiler.mosaic
+
+<img style="max-width:400px" src="https://github.com/user-attachments/assets/14b92588-14eb-4b37-b862-cc5d0d8015c9"/>
+
+Adds support for [MosaicJSON](https://github.com/developmentseed/mosaicjson-spec) in Titiler.
+
+> MosaicJSON is an open standard for representing metadata about a mosaic of Cloud-Optimized GeoTIFF (COG) files.
+
+Ref: https://github.com/developmentseed/mosaicjson-spec
+
+## Installation
+
+```bash
+python -m pip install -U pip
+
+# From Pypi
+python -m pip install titiler.mosaic
+
+# Or from sources
+git clone https://github.com/developmentseed/titiler.git
+cd titiler && python -m pip install -e src/titiler/core -e src/titiler/mosaic
+```
+
+## How To
+
+```python
+from fastapi import FastAPI
+from titiler.mosaic.factory import MosaicTilerFactory
+
+# Create a FastAPI application
+app = FastAPI(
+    description="A Mosaic tile server",
+)
+
+# Create a set of MosaicJSON endpoints
+mosaic = MosaicTilerFactory()
+
+# Register the Mosaic endpoints to the application
+app.include_router(mosaic.router, tags=["MosaicJSON"])
+```
+
+## Package structure
+
+```
+titiler/
+ └── mosaic/
+    ├── tests/                   - Tests suite
+    └── titiler/mosaic/          - `mosaic` namespace package
+        ├── models/
+        |   └── responses.py     - mosaic response models
+        ├── errors.py            - cogeo-mosaic known errors
+        └── factory.py           - Mosaic endpoints factory
+```

@@ -24,36 +24,49 @@ async function addCOG(cogUrl: string) {
   }
 
   const tj = await res.json();
-  const tilesTemplate: string | undefined = tj.tiles?.[0];
-  if (!tilesTemplate) {
-    alert("No tiles template in TileJSON response.");
-    console.error("TileJSON:", tj);
-    return;
-  }
 
-  // Add imagery layer
+  let tilesTemplate = tj.tiles?.[0];
+  if (!tilesTemplate) throw new Error("No tiles[] in TileJSON");
+
+  // Ensure correct prefix + explicit PNG
+  tilesTemplate = tilesTemplate.replace(
+    "http://localhost:8000/tiles/",
+    "http://localhost:8000/cog/tiles/",
+  ).replace(/(@\d+x)(?!\.\w+)/, "$1.png");
+
+  // Build bounds from TileJSON: [west, south, east, north]
+  const tjBounds = Array.isArray(tj.bounds) && tj.bounds.length === 4
+    ? L.latLngBounds([ [tj.bounds[1], tj.bounds[0]], [tj.bounds[3], tj.bounds[2]] ])
+    : undefined;
+
+  // 1x1 transparent GIF for “no data” tiles to avoid console noise
+  const transparentPx = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+
   const imagery = L.tileLayer(tilesTemplate, {
+    tileSize: 256,
     minZoom: tj.minzoom ?? 0,
     maxZoom: tj.maxzoom ?? 22,
     attribution: tj.attribution ?? "",
-    tileSize: 256,
-  }).addTo(map);
-
-  // Fit to bounds if provided: [west, south, east, north]
-  if (Array.isArray(tj.bounds) && tj.bounds.length === 4) {
-    const [w, s, e, n] = tj.bounds;
-    map.fitBounds([
-      [s, w],
-      [n, e],
-    ]);
-  }
-
-  // Layer control (optional)
-  L.control
-    .layers({ OpenStreetMap: osm }, { "Sentinel-2 (COG)": imagery }, { collapsed: false })
+    crossOrigin: "anonymous",
+    bounds: tjBounds,        // <-- constrain requests to the dataset footprint
+    noWrap: true,            // <-- don’t wrap across the dateline
+    keepBuffer: 0,           // <-- don’t overfetch tiles beyond viewport
+    updateWhenIdle: true,    // <-- fewer interim fetches during pan/zoom
+    errorTileUrl: transparentPx, // <-- avoid 404 errors showing up as broken images
+    zIndex: 500,
+  })
+    .on("tileerror", (e: any) => console.warn("Tile outside footprint (suppressed):", e?.tile?.src || e))
+    .on("tileload",  (e: any) => console.log("Tile loaded:", e?.tile?.src || e))
     .addTo(map);
-  console.log("TileJSON response:", tj);
+
+  // Fit map to the COG footprint
+  if (tjBounds) map.fitBounds(tjBounds);
+
+  L.control.layers({ OpenStreetMap: osm }, { "Sentinel-2 (COG)": imagery }, { collapsed: false }).addTo(map);
+
+  console.log("TileJSON:", tj);
 }
+
 
 // Example known-good Sentinel-2 TCI COG (true color)
 const exampleCOG =

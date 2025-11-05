@@ -4,6 +4,7 @@ from typing import List, Optional
 from datetime import date
 from loguru import logger
 from titiler.core.factory import TilerFactory
+from titiler.mosaic.factory import MosaicTilerFactory  # <-- NEW
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 
 from .settings import settings
@@ -14,6 +15,9 @@ app = FastAPI(title="Satellite Data Explorer API", version="0.1.0")
 cog = TilerFactory()
 app.include_router(cog.router, prefix="/cog", tags=["COG"])
 
+mosaic = MosaicTilerFactory()                     # provides /mosaic/mosaicjson + /mosaic/tiles...
+app.include_router(mosaic.router, prefix="/mosaic", tags=["Mosaic"])
+
 # (optional) better error messages
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 
@@ -23,6 +27,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",  # typical Vite dev port
         "http://localhost:5174",  # your current frontend port
+        "http://127.0.0.1:5173",
+
     ],
     allow_credentials=True,
     allow_methods=["*"],
