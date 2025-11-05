@@ -1,0 +1,28 @@
+services:
+  backend:
+    build:
+      context: ../backend
+    env_file:
+      - ../.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../backend:/app
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  titiler:
+    image: ghcr.io/developmentseed/titiler:latest
+    ports:
+      - "8080:80"   # host:container  ← NOTE the :80 on the right
+    environment:
+      - MPLCONFIGDIR=/tmp
+
+    # CORS is open by default; you can add a reverse proxy later for prod
+
+  # optional static server for built frontend:
+  # web:
+  #   image: nginx:alpine
+  #   volumes:
+  #     - ../app/frontend/dist:/usr/share/nginx/html:ro
+  #   ports:
+  #     - "5174:80"

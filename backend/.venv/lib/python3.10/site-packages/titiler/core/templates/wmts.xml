@@ -1,0 +1,69 @@
+<Capabilities xmlns="http://www.opengis.net/wmts/1.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" xsi:schemaLocation="http://www.opengis.net/wmts/1.0 http://schemas.opengis.net/wmts/1.0/wmtsGetCapabilities_response.xsd" version="1.0.0">
+    <ows:ServiceIdentification>
+        <ows:Title>Web Map Tile Service by TiTiler</ows:Title>
+        <ows:ServiceType>OGC WMTS</ows:ServiceType>
+        <ows:ServiceTypeVersion>1.0.0</ows:ServiceTypeVersion>
+    </ows:ServiceIdentification>
+    <ows:ServiceProvider>
+        <ows:ProviderName>TiTiler</ows:ProviderName>
+        <ows:ProviderSite xlink:href="https://developmentseed.org/titiler/"/>
+        <ows:ServiceContact/>
+    </ows:ServiceProvider>
+    <ows:OperationsMetadata>
+        <ows:Operation name="GetCapabilities">
+            <ows:DCP>
+                <ows:HTTP>
+                    <ows:Get xlink:href="{{ request.url | escape }}">
+                        <ows:Constraint name="GetEncoding">
+                            <ows:AllowedValues>
+                                <ows:Value>RESTful</ows:Value>
+                            </ows:AllowedValues>
+                        </ows:Constraint>
+                    </ows:Get>
+                </ows:HTTP>
+            </ows:DCP>
+        </ows:Operation>
+        <ows:Operation name="GetTile">
+            <ows:DCP>
+                <ows:HTTP>
+                    <ows:Get xlink:href="{{ request.url | escape }}">
+                        <ows:Constraint name="GetEncoding">
+                            <ows:AllowedValues>
+                                <ows:Value>RESTful</ows:Value>
+                            </ows:AllowedValues>
+                        </ows:Constraint>
+                    </ows:Get>
+                </ows:HTTP>
+            </ows:DCP>
+        </ows:Operation>
+    </ows:OperationsMetadata>
+    <Contents>
+    {% for layer in layers -%}
+        <Layer>
+            <ows:Title>{{ layer.title }}</ows:Title>
+            <ows:Identifier>{{ layer.name }}</ows:Identifier>
+            <ows:Abstract>{{ layer.name }}</ows:Abstract>
+            <ows:{{ bbox_crs_type }} crs="{{ bbox_crs_uri }}">
+                <ows:LowerCorner>{{ layer.bounds[0] }} {{ layer.bounds[1] }}</ows:LowerCorner>
+                <ows:UpperCorner>{{ layer.bounds[2] }} {{ layer.bounds[3] }}</ows:UpperCorner>
+            </ows:{{ bbox_crs_type }}>
+            <Style isDefault="true">
+                <ows:Identifier>default</ows:Identifier>
+            </Style>
+            <Format>{{ media_type }}</Format>
+            <TileMatrixSetLink>
+                <TileMatrixSet>{{ tileMatrixSetId }}</TileMatrixSet>
+            </TileMatrixSetLink>
+            <ResourceURL format="{{ media_type }}" resourceType="tile" template="{{ layer.tiles_url }}?{{ layer.query_string | escape }}" />
+        </Layer>
+    {%- endfor %}
+        <TileMatrixSet>
+            <ows:Identifier>{{ tileMatrixSetId }}</ows:Identifier>
+            <ows:SupportedCRS>{{ supported_crs }}</ows:SupportedCRS>
+            {% for item in tileMatrix -%}
+            {{ item | safe }}
+            {%- endfor %}
+        </TileMatrixSet>
+    </Contents>
+    <ServiceMetadataURL xlink:href="{{ request.url | escape }}" />
+</Capabilities>

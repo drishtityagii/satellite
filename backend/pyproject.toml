@@ -1,0 +1,18 @@
+[project]
+name = "satellite-data-explorer-backend"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "pystac-client",
+  "httpx",
+  "pydantic-settings",
+  "python-dotenv",
+  "shapely",
+  "geojson-pydantic",
+  "loguru",
+]
+
+[tool.ruff]
+line-length = 100
