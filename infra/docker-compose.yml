@@ -5,7 +5,7 @@ services:
     env_file:
       - ../.env
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - ../backend:/app
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
@@ -16,6 +16,18 @@ services:
       - "8080:80"   # host:container  ← NOTE the :80 on the right
     environment:
       - MPLCONFIGDIR=/tmp
+
+  frontend:
+    build:
+      context: ../app/frontend
+    ports:
+      - "127.0.0.1:5173:5173"   # change this to 3000 if you're using Next.js
+    volumes:
+      - ../frontend:/app
+    working_dir: /app
+    command: ["npm", "run", "dev"]
+    environment:
+      - VITE_API_URL=http://127.0.0.1:8000
 
     # CORS is open by default; you can add a reverse proxy later for prod
 

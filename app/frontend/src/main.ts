@@ -79,8 +79,6 @@ async function buildMosaicForView() {
       return;
     }
 
-    // 2) MOSAIC via query params (no POST, no TileJSON)
-    // Keep the list modest to avoid huge query strings.
     const top = urls.slice(0, 50); // send up to ~50; adjust as you like
     const mosaicRes = await fetch("http://localhost:8000/mosaics", {
       method: "POST",
@@ -124,7 +122,6 @@ async function buildMosaicForView() {
     .replace(/(@\d+x)(?!\.\w+)/, "$1.png");
     console.log("[tiles] template:", template);
 
-    // 4) SWAP LAYER
     if (mosaicLayer) { map.removeLayer(mosaicLayer); mosaicLayer = null; }
 
     const transparentPx =
@@ -146,7 +143,6 @@ async function buildMosaicForView() {
       .on("tileload",  e => console.log("[tiles] loaded:", e?.tile?.src))
       .addTo(map);
 
-    // (optional) fit once on first load
     if (tj.bounds) {
       const b = L.latLngBounds([[tj.bounds[1], tj.bounds[0]], [tj.bounds[3], tj.bounds[2]]]);
       if (!map.getBounds().intersects(b)) map.fitBounds(b);
